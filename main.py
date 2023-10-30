@@ -1,9 +1,10 @@
 import cv2
 import pytesseract
 import numpy as np
+
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 cascade = cv2.CascadeClassifier("resources/haarcascade_russian_plate_number.xml")
-
+#Opencv method used to identify objects or features within images or video, haarcascade means rectangular boxes
 
 def extract_num(img_name):
     minArea = 500
@@ -12,18 +13,16 @@ def extract_num(img_name):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)#converts the image into grayscale
     nplate = cascade.detectMultiScale(gray, 1.1, 4)#detects all number plate instances in the image
 
-    for (x,y,w,h) in nplate:
+    for (x,y,w,h) in nplate:#for each instance of numberplate
         a, b = (int(0.02 * img.shape[0]), int(0.0025 * img.shape[1]))
         plate = img[y+a:y+h-a, x+b:x+w-b] #we crop the numberplate
         area = w * h
-        if area >minArea:
+        if area > minArea:
         #image processing
             kernel = np.ones((1,1), np.uint8)
             plate = cv2.dilate(plate, kernel, iterations=1)
             plate = cv2.erode(plate, kernel, iterations=1) #make the image brighter
             plate_gray = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
-            # plate_gauss = cv2.GaussianBlur(plate_gray, (5, 5), 0)
-            # (thresh, plate) = cv2.threshold(plate_gauss, 127, 255, cv2.THRESH_BINARY)
             (thresh, plate) = cv2.threshold(plate_gray, 127, 255, cv2.THRESH_BINARY)
 
         #reading the number from the number plate image
@@ -31,7 +30,7 @@ def extract_num(img_name):
         #                                    config='--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
             read = pytesseract.image_to_string(plate)
             read = ''.join(e for e in read if e.isalnum())#remove the blank space between characters on the number plate
-            print(plate.shape[0], plate.shape[1])
+            # print(plate.shape[0], plate.shape[1])
             if read =="":
                 print("Nothing")
                 continue
@@ -46,7 +45,7 @@ def extract_num(img_name):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-extract_num("resources/toyota.png")
+extract_num("resources/skoda2.jpg")
 
 
 
